@@ -3,7 +3,7 @@ import subprocess
 import argparse
 import sys
 import os
-from jakob import Patterner
+from patterner import Patterner
 
 
 MUSIC_FOLDER = os.path.join(os.environ["HOME"], "mus")
@@ -13,9 +13,6 @@ PLAYLIST_FOLDER = os.path.join(MUSIC_FOLDER, "playlists")
 def errprint(message):
     """Prints the message to stderr"""
     print(message, file=sys.stderr)
-
-
-
 
 _p = Patterner()
 _EXTENSIONS = {"mp3", "ogg", "flac", "m4a", "wav", "oga"}
