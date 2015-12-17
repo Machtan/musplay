@@ -54,7 +54,21 @@ loading_sentinent = object()
 
 class Searcher:
 
-    def __init__(self, *, music_dir, playlist_dir, debug=False, quiet=False):
+    def __init__(self, *, music_dir=None, playlist_dir=None, debug=False, quiet=False):
+        if music_dir is None:
+            music_dir = os.environ.get('MUSPLAY_MUSIC')
+            if music_dir is None:
+                error("missing environment variable MUSPLAY_MUSIC", code=2)
+
+        if playlist_dir is None:
+            playlist_dir = os.environ.get('MUSPLAY_PLAYLISTS')
+            if playlist_dir is None:
+                playlist_dir = os.path.join(music_dir, 'Playlists')
+                if not os.path.exists(playlist_dir):
+                    playlist_dir = music_dir
+            else:
+                self.warn("MUSPLAY_PLAYLISTS folder doesn't exist {!r}".format(playlist_dir))
+
         self.music_dir = music_dir
         self.playlist_dir = playlist_dir
         self.debug_flag = debug
@@ -188,13 +202,11 @@ pattern prefixes:
 
 
 def main(args=sys.argv[1:]):
-    """Entry point"""
-
     parser = argparse.ArgumentParser(description=description, epilog=epilog,
         formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument("pattern", nargs="+",
-        help="A pattern to search for")
+        help="the patterns to search with (see pattern prefixes below)")
 
     parser.add_argument("-d", "--debug", action="store_true", default=False,
         help="print extra information for debugging")
@@ -207,21 +219,7 @@ def main(args=sys.argv[1:]):
 
     parsed = parser.parse_args(args)
 
-    music_dir = os.environ.get('MUSPLAY_MUSIC')
-    if music_dir is None:
-        error("missing environment variable MUSPLAY_MUSIC", code=2)
-
-    playlist_dir = os.environ.get('MUSPLAY_PLAYLISTS')
-    if playlist_dir is None:
-        playlist_dir = os.path.join(music_dir, 'Playlists')
-        if not os.path.exists(playlist_dir):
-            playlist_dir = music_dir
-    elif not parsed.quiet:
-        print("warning: MUSPLAY_PLAYLISTS folder doesn't exist {!r}".format(playlist_dir),
-            file=sys.stderr)
-
-    searcher = Searcher(music_dir=music_dir, playlist_dir=playlist_dir,
-        debug=parsed.debug, quiet=parsed.quiet)
+    searcher = Searcher(debug=parsed.debug, quiet=parsed.quiet)
 
     paths = searcher.find_tracks(parsed.pattern)
 
