@@ -96,6 +96,9 @@ def main(args=sys.argv[1:]):
     parser.add_argument("-x", "--exclude", metavar="pattern", nargs="+",
         help="Exclude anything matched by the given patterns")
     
+    parser.add_argument("-n", "--dry-run", action="store_true", 
+        help="Just print the found tracks instead of playing them")
+    
     
     # ======== Post-parser =========
     parsed = parser.parse_args(args)
@@ -110,6 +113,11 @@ def main(args=sys.argv[1:]):
     if not paths:
         errprint("No tracks found :(")
         sys.exit(1)
+    
+    if parsed.dry_run:
+        for path in paths:
+            print(path)
+        return
     
     try:
         play_tracks(paths, keep_open=parsed.keep_open, 
