@@ -55,6 +55,9 @@ loading_sentinent = object()
 class Searcher:
 
     def __init__(self, *, music_dir=None, playlist_dir=None, debug=False, quiet=False):
+        self.debug_flag = debug
+        self.quiet = quiet
+
         if music_dir is None:
             music_dir = os.environ.get('MUSPLAY_MUSIC')
             if music_dir is None:
@@ -66,13 +69,11 @@ class Searcher:
                 playlist_dir = os.path.join(music_dir, 'Playlists')
                 if not os.path.exists(playlist_dir):
                     playlist_dir = music_dir
-            else:
+            elif not os.path.exists(playlist_dir):
                 self.warn("MUSPLAY_PLAYLISTS folder doesn't exist {!r}".format(playlist_dir))
 
         self.music_dir = music_dir
         self.playlist_dir = playlist_dir
-        self.debug_flag = debug
-        self.quiet = quiet
         self.loaded_playlists = {}
         self.paths = []
 
