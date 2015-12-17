@@ -192,6 +192,7 @@ def main(args=sys.argv[1:]):
     No prefix for the path to a file or playlist (.txt containing patterns).
     @ for track titles      (eg: '@Cascadia').
     @@ for album titles     (eg: '@@Icarus EP').
+    \% for playlists        (eg: '\%Fake.txt')
     $ for general patterns  (eg: '$Trash80') (titles, albums, paths) .
     """
     parser = argparse.ArgumentParser(description=description)
