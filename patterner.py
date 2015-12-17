@@ -17,16 +17,16 @@ def escape_braces(string):
         parts.append(string[start : match.start()])
         parts.append("{{{}}}".format(match.group()))
         start = match.end()
-    
+
     if start == 0:
         return string
-    
+
     if start != len(string):
         parts.append(string[start:])
-        
+
     return "".join(parts)
-        
-    
+
+
 class Patterner():
     """A simple pattern combiner for easier regex combination.
     any previously defined pattern will be mapped into new patterns.
@@ -38,17 +38,17 @@ class Patterner():
     """
     def __init__(self):
         self._dict = dict()
-    
+
     def __getattr__(self, key):
         return self._dict[key]
-    
+
     def __setattr__(self, key, val):
         if key.startswith("_"):
             super().__setattr__(key, val)
         else:
             pat = escape_braces("(?:{})".format(val))
             self._dict[key] = pat.format(**self._dict)
-    
+
 
 def main(args=sys.argv[1:]):
     p = Patterner()
@@ -57,7 +57,7 @@ def main(args=sys.argv[1:]):
     p.EXPONENT = r"e{SIGN}? {REGNUM}"
     p.INTEGER = r"(?P<integer>{SIGN}? {REGNUM})"
     p.FLOAT = r"""(?P<float>
-    {SIGN}? {REGNUM} 
+    {SIGN}? {REGNUM}
     (?:{SIGN}? {REGNUM}\.{REGNUM}{EXPONENT}? | {EXPONENT}))"""
     p.NUMBER = r"({FLOAT} | {INTEGER})"
 
