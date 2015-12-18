@@ -3,7 +3,7 @@ import subprocess
 import argparse
 import sys
 import os
-from patterner import Patterner
+import re
 
 
 def error(*msg, code=1):
@@ -12,38 +12,34 @@ def error(*msg, code=1):
 
 
 extensions = {"mp3", "aac", "mka", "dts", "flac", "ogg", "m4a", "ac3", "opus", "wav"}
-patterner = Patterner()
-patterner.ENDING = r"[.]({})".format("|".join(extensions))
-patterner.SIMPLE = r".*?{}.*?"
-patterner.GENERAL = "{}{ENDING}"
-patterner.TITLE = r".*?/{}{ENDING}"
-patterner.PLAYLIST = r".*?/{}"
-patterner.ALBUM = r"{SIMPLE}/.*?{ENDING}"
-patterner.NON_PATH = r"[^/]*?{}[^/]*?"
+_re_ext = r'(?:' + r'|'.join(extensions) + r')'
 
 
-def delimit_pattern(pattern, delimiter, template):
-    """Splits the pattern at the delimiter and formats the template with
-    each part"""
-    return delimiter.join(template.format(part.strip()) for part in pattern.split(delimiter))
+def _patgen_title(query):
+    query = r'[^/]*'.join(re.escape(p) for p in query.split())
+    return query + r'[^/]*\.' + _re_ext + r'$'
 
+def _patgen_album(query):
+    query = r'[^/]*'.join(re.escape(p) for p in query.split())
+    return query + r'[^/]*/.*\.' + _re_ext + r'$'
 
-def create_pattern_generator(fuzzify_path_elements, pattern, template):
-    def pattern_generator(term):
-        if fuzzify_path_elements:
-            term = delimit_pattern(term, "/", patterner.NON_PATH)
-        term = delimit_pattern(term, " ", template)
-        return pattern.format(term)
-    return pattern_generator
+def _patgen_playlist(query):
+    query = r'[^/]*'.join(re.escape(p) for p in query.split())
+    return query + r'[^/]*\.txt$'
+
+def _patgen_general(query):
+    # all slashes must be explicit, but spaces still count as wildcard
+    segs = (p.split() for p in query.split('/'))
+    query = r'.*/.*'.join(r'[^/]*'.join(re.escape(p) for p in s) for s in segs)
+    return query + r'.*\.' + _re_ext + r'$'
 
 
 pattern_generators = {
-    "@": create_pattern_generator(False, patterner.TITLE, patterner.NON_PATH),
-    "@@": create_pattern_generator(True, patterner.ALBUM, patterner.SIMPLE),
-    "%": create_pattern_generator(False, patterner.PLAYLIST, patterner.NON_PATH),
-    "$": create_pattern_generator(True, patterner.GENERAL, patterner.SIMPLE),
+    '@': _patgen_title,
+    '@@': _patgen_album,
+    '%':  _patgen_playlist,
+    '$': _patgen_general,
 }
-
 
 sorted_patterns = list(pattern_generators.items())
 sorted_patterns.sort(key=lambda pair: len(pair[0]), reverse=True)
@@ -86,7 +82,7 @@ class Searcher:
             print("warning:", *msg, file=sys.stderr)
 
     def call_searcher(self, pattern, folder):
-        cmd = ['ag', '--nocolor', '-ig', pattern, folder]
+        cmd = ['ag', '--nocolor', '-ig', pattern, '--', folder]
         self.debug(' '.join(cmd))
         result = subprocess.run(cmd, stdout=subprocess.PIPE)
 
