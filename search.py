@@ -140,8 +140,7 @@ class Searcher:
                 paths.append(pattern)
                 continue
 
-            # TODO: maybe another solution would make sense
-            error("unknown extension {!r} for pattern {!r}".format(ext, pattern))
+            self.warn("ignoring unknown extension {!r} for pattern {!r}".format(ext, pattern))
 
         return paths
 
@@ -162,7 +161,8 @@ class Searcher:
             with open(playlist, 'r') as f:
                 data = f.read()
         except IOError:
-            error("could not read playlist file {!r}".format(playlist))
+            self.warn("could not read playlist file {!r}".format(playlist))
+            return []
 
         patterns = []
         for line in data.split('\n'):
