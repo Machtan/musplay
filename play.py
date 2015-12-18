@@ -11,31 +11,23 @@ SHARE_VOLUME=30
 
 
 def play_tracks(paths, force_window=False, keep_open=False, shuffle=False,
-        share=False, volume=None, normalize=False, loop=False):
+        audio_device=None, volume=None, normalize=False, loop=False,
+        mpv_args=[]):
     """Plays the given paths using mpv"""
-    if not paths:
-        # is this an error or not?
-        error("no tracks found :(")
 
     cmd = ["mpv"]
     if force_window:
         cmd.append("--force-window")
         if keep_open:
             cmd.append("--keep-open=yes")
-
     else:
         cmd.append("--no-audio-display")
 
     if volume is not None:
         cmd.append("--volume={}".format(volume))
 
-    if share:
-        cmd.append("--audio-device={}".format(SHARED_AUDIO_DEVICE))
-        if volume is None:
-            cmd.append("--volume=30")
-
-    #if normalize:
-    #    cmd.append("--af=lavrresample=normalize=yes")
+    if audio_device is not None:
+        cmd.append("--audio-device=" + audio_device)
 
     # Remove duplicates
     if shuffle:
@@ -45,7 +37,10 @@ def play_tracks(paths, force_window=False, keep_open=False, shuffle=False,
     if loop:
         cmd.append("--loop=inf")
 
-    subprocess.run(cmd + paths)
+    if mpv_args:
+        cmd += mpv_args
+
+    subprocess.run(cmd + ['--'] + paths)
 
 description = """
 Find and play music tracks using 'ag' (aka The Silver Searcher) and 'mpv'
@@ -71,28 +66,25 @@ def main(args=sys.argv[1:]):
         formatter_class=argparse.RawDescriptionHelpFormatter)
 
     parser.add_argument("-s", "--shuffle", action="store_true", default=False,
-        help="Shuffle the found tracks")
+        help="shuffle the found tracks")
 
-    parser.add_argument("-w", "--windowed", action="store_true", default=False,
-        help="Show the tracks in a GUI window")
+    parser.add_argument("-w", "--window", action="store_true", default=False,
+        help="show the tracks in a GUI window")
 
     parser.add_argument("-k", "--keep-open", action="store_true", default=False,
-        help="Keep the GUI window open after the last track has finished")
+        help="keep the GUI window open after the last track has finished")
 
-    parser.add_argument("-a", "--share", action="store_true", default=False,
-        help="Plays to the music to the multi-channel MIDI device to share it to default input (TLDR: play it to Skype)")
+    parser.add_argument("-a", "--audio-device", metavar="DEVICE",
+        help="plays to the output device (use `mpv --audio-device=help` to get a list of device IDs)")
 
     parser.add_argument("-v", "--volume", default=50, type=int,
-        help="The volume to start playing at (default: 50)")
-
-    #parser.add_argument("--normalize", action="store_true", default=False,
-    #    help="[NOT WORKING] Attempt to normalize the audio using libavresample")
+        help="the volume to start playing at (default: 50)")
 
     parser.add_argument("-l", "--loop", action="store_true", default=False,
-        help="Loop the tracks")
+        help="loop the tracks")
 
     parser.add_argument("-n", "--dry-run", action="store_true",
-        help="Just print the found tracks instead of playing them")
+        help="just print the found tracks instead of playing them")
 
     parser.add_argument("-d", "--debug", action="store_true", default=False,
         help="print extra information for debugging")
@@ -101,10 +93,13 @@ def main(args=sys.argv[1:]):
         help="suppress non-fatal warnings")
 
     parser.add_argument("pattern", nargs="+",
-        help="the patterns to search with (see pattern prefixes below)")
+        help="the patterns to search with (see prefixes below)")
 
     parser.add_argument("--exclude", metavar="pattern", nargs="+",
         help="exclude anything matched by the given patterns")
+
+    parser.add_argument("--mpv", action="append", metavar="ARG",
+        help="pass an argument directly to mpv")
 
     parsed = parser.parse_args(args)
 
@@ -116,8 +111,7 @@ def main(args=sys.argv[1:]):
         paths = [p for p in paths if not p in excluded]
 
     if not paths:
-        errprint("No tracks found :(")
-        sys.exit(1)
+        error("no tracks found :(")
 
     if parsed.dry_run:
         for path in paths:
@@ -126,10 +120,9 @@ def main(args=sys.argv[1:]):
 
     try:
         play_tracks(paths, keep_open=parsed.keep_open,
-            force_window=parsed.windowed, shuffle=parsed.shuffle,
-            share=parsed.share, volume=parsed.volume,
-            #normalize=parsed.normalize,
-            loop=parsed.loop)
+            force_window=parsed.window, shuffle=parsed.shuffle,
+            audio_device=parsed.audio_device, volume=parsed.volume,
+            mpv_args=parsed.mpv, loop=parsed.loop)
 
     except KeyboardInterrupt:
         print("\nGoodbye!")
