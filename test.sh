@@ -6,8 +6,9 @@ mkdir test
 cd test
 
 mkdir music music/alpha music/beta playlists
-touch music/{a.wav,b.wav,c.ogg,d.flac}
-touch music/alpha/{b.wav,c.ogg} music/beta/d.flac
+touch music/{a.wav,b.wav,c.ogg,d.flac,f.jpeg}
+touch music/alpha/{b.wav,c.ogg,e.png} music/beta/d.flac
+touch playlists/a playlists/a.tiff
 
 cat >playlists/a.txt <<EOF
 # This is a comment
@@ -56,6 +57,7 @@ run_test 1 '@a'
 
 # Test album
 run_test 2 '@@alpha'
+run_test 2 '@@alp'
 run_test 7 '@@' # it is recursive! (TODO)
 
 # Test general
@@ -67,7 +69,6 @@ run_test 2 'a.txt'
 
 # Test fuzzy playlist search
 run_test 2 '%a'
-run_test 2 '%a.txt'
 run_test 10 '%'
 
 # Test recursive playlists
