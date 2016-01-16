@@ -1,12 +1,12 @@
 # Install
 
 This program requires Python 3.2+.
-It also requires the program `ag` (aka "The Silver Searcher") in your path.
 For music playback, it uses the program `mpv`.
-These can be installed on Mac OS X by using the following Homebrew command
+These can be installed on OS X by using the following
+[Homebrew](http://brew.sh/) command
 
 ```
-$ brew install python3 ag mpv
+$ brew install python3 mpv
 ```
 
 ### NOTE

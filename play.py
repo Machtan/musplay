@@ -43,7 +43,7 @@ def play_tracks(paths, force_window=False, keep_open=False, shuffle=False,
     subprocess.run(cmd + ['--'] + paths)
 
 description = """
-Find and play music tracks using 'ag' (aka The Silver Searcher) and 'mpv'
+Find and play music tracks with 'mpv'.
 
 environment variables:
   MUSPLAY_MUSIC         where to find music tracks (required)
