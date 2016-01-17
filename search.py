@@ -1,9 +1,10 @@
 # 4 December 2015
-import subprocess
 import argparse
-import sys
 import os
 import re
+import shlex
+import subprocess
+import sys
 
 
 def error(*msg, code=1):
@@ -12,7 +13,7 @@ def error(*msg, code=1):
 
 
 extensions = {"mp3", "aac", "mka", "dts", "flac", "ogg", "m4a", "ac3", "opus", "wav"}
-_re_ext = r'(?:' + r'|'.join(extensions) + r')'
+_re_ext = r'(' + r'|'.join(extensions) + r')'
 
 
 def _patgen_title(query):
@@ -82,8 +83,8 @@ class Searcher:
             print("warning:", *msg, file=sys.stderr)
 
     def call_searcher(self, pattern, folder):
-        cmd = ['ag', '--nocolor', '-ig', pattern, '--', folder]
-        self.debug(' '.join(cmd))
+        cmd = ['find', '-Ef', folder, '--', '-iregex', '.*' + pattern + '.*']
+        self.debug(' '.join(shlex.quote(arg) for arg in cmd))
         result = subprocess.run(cmd, stdout=subprocess.PIPE)
 
         if result.returncode == 0:
@@ -180,7 +181,7 @@ class Searcher:
 
 
 description = """
-Find music tracks using 'ag' (aka The Silver Searcher)
+Find music tracks by track and album titles.
 
 environment variables:
   MUSPLAY_MUSIC         where to find music tracks (required)
