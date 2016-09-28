@@ -25,8 +25,12 @@ def _patgen_album(query):
     return query + r'[^/]*/.*\.' + _re_ext + r'$'
 
 def _patgen_playlist(query):
-    query = r'[^/]*'.join(re.escape(p) for p in query.split())
-    return query + r'[^/]*\.txt$'
+    gen_query = r'[^/]*'.join(re.escape(p) for p in query.split())
+    if not query.endswith(".txt"):
+        gen_query += r'[^/]*\.txt$'
+    else:
+        gen_query += r'[^/]*$'
+    return gen_query
 
 def _patgen_general(query):
     # all slashes must be explicit, but spaces still count as wildcard
@@ -114,6 +118,7 @@ class Searcher:
                 if prefix == '%':
                     # special playlist search
                     result = self.call_searcher(pat, self.playlist_dir)
+                    self.debug("playlist search result: {!r}".format(result))
                     if result:
                         res = []
                         for playlist in result:
