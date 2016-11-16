@@ -12,7 +12,7 @@ def error(*msg, code=1):
     exit(code)
 
 
-extensions = {"mp3", "aac", "mka", "dts", "flac", "ogg", "m4a", "ac3", "opus", "wav"}
+extensions = {"mp3", "aac", "mka", "dts", "flac", "ogg", "m4a", "ac3", "opus", "wav", "aiff"}
 _re_ext = r'(' + r'|'.join(extensions) + r')'
 
 
